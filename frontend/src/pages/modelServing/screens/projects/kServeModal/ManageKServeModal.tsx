@@ -128,6 +128,9 @@ const ManageKServeModal: React.FC<ManageKServeModalProps> = ({
   const { data: kServeNameDesc, onDataChange: setKserveNameDesc } = useK8sNameDescriptionFieldData({
     initialData: editInfo?.inferenceServiceEditInfo,
     limitNameResourceType: LimitNameResourceType.MODEL_DEPLOYMENT,
+    regexp: /^[a-z]([-a-z0-9]*[a-z0-9])?$/,
+    invalidCharsMessage:
+      'Must start with a letter and end with a letter or number. Valid characters include lowercase letters, numbers, and hyphens (-).',
   });
 
   const [connection, setConnection] = React.useState<Connection>();
@@ -334,7 +337,19 @@ const ManageKServeModal: React.FC<ManageKServeModalProps> = ({
       .catch((e) => {
         props.success = false;
         props.errorMessage = e;
-        setErrorModal(e);
+        const message = e?.message || String(e);
+        if (
+          message.includes('kserve-webhook-server.validator') ||
+          (message.includes('InferenceService') && message.includes('invalid'))
+        ) {
+          setErrorModal(
+            new Error(
+              'The model deployment name is invalid. Must start with a letter and end with a letter or number. Valid characters include lowercase letters, numbers, and hyphens (-).',
+            ),
+          );
+        } else {
+          setErrorModal(e);
+        }
         fireFormTrackingEvent(editInfo ? 'Model Updated' : 'Model Deployed', props);
       });
   };
