@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { EmptyState, EmptyStateVariant, Spinner, Content } from '@patternfly/react-core';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { useNavigate } from 'react-router-dom';
 import {
   fireMiscTrackingEvent,
   fireSimpleTrackingEvent,
@@ -12,6 +11,8 @@ import ChatbotEmptyState from '~/app/EmptyStates/NoData';
 import { GenAiContext } from '~/app/context/GenAiContext';
 import { isLlamaModelEnabled } from '~/app/utilities';
 import useFetchBFFConfig from '~/app/hooks/useFetchBFFConfig';
+import useFetchAAEVectorStores from '~/app/hooks/useFetchAAEVectorStores';
+import useFetchVectorStores from '~/app/hooks/useFetchVectorStores';
 import ChatbotConfigurationModal from '~/app/Chatbot/components/chatbotConfiguration/ChatbotConfigurationModal';
 import DeletePlaygroundModal from '~/app/Chatbot/components/DeletePlaygroundModal';
 import ChatModal from '~/app/Chatbot/components/ChatModal';
@@ -42,8 +43,8 @@ const ChatbotMain: React.FunctionComponent = () => {
   } = React.useContext(ChatbotContext);
   const { namespace } = React.useContext(GenAiContext);
   const { data: bffConfig } = useFetchBFFConfig();
-
-  const navigate = useNavigate();
+  const { data: allCollections, loaded: collectionsLoaded } = useFetchAAEVectorStores();
+  const [existingCollections] = useFetchVectorStores();
 
   const [isViewCodeModalOpen, setIsViewCodeModalOpen] = React.useState(false);
   const [configurationModalOpen, setConfigurationModalOpen] = React.useState(false);
@@ -53,6 +54,7 @@ const ChatbotMain: React.FunctionComponent = () => {
   const { isPromptManagementModalOpen } = usePlaygroundStore();
   // Track which pane's settings are active in compare mode
   const [activePaneConfigId, setActivePaneConfigId] = React.useState<string>(DEFAULT_CONFIG_ID);
+  const [isDrawerExpanded, setIsDrawerExpanded] = React.useState(true);
 
   // Ref to clear all chat messages (will be set by ChatbotPlayground)
   const clearAllMessagesRef = React.useRef<(() => void) | null>(null);
@@ -132,9 +134,7 @@ const ChatbotMain: React.FunctionComponent = () => {
                   Go to <b>Model deployments</b>
                 </>
               }
-              handleActionButtonClick={() => {
-                navigate(`/ai-hub/deployments/${namespace?.name}`);
-              }}
+              actionButtonHref={`/ai-hub/deployments/${namespace?.name ?? ''}`}
             />
           ) : (
             <ChatbotEmptyState
@@ -168,6 +168,8 @@ const ChatbotMain: React.FunctionComponent = () => {
                 setIsCompareChatModalOpen(true);
                 fireSimpleTrackingEvent('Playground Compare Chat Selected');
               }}
+              onSettingsClick={() => setIsDrawerExpanded((prev) => !prev)}
+              isSettingsOpen={isDrawerExpanded}
               isCompareMode={isCompareMode}
             />
           )
@@ -208,9 +210,7 @@ const ChatbotMain: React.FunctionComponent = () => {
                   Go to <b>Model deployments</b>
                 </>
               }
-              handleActionButtonClick={() => {
-                navigate(`/ai-hub/deployments/${namespace?.name}`);
-              }}
+              actionButtonHref={`/ai-hub/deployments/${namespace?.name ?? ''}`}
             />
           ) : (
             <ChatbotPlayground
@@ -222,6 +222,8 @@ const ChatbotMain: React.FunctionComponent = () => {
               setActivePaneConfigId={setActivePaneConfigId}
               onClosePane={handleClosePane}
               clearAllMessagesRef={clearAllMessagesRef}
+              isDrawerExpanded={isDrawerExpanded}
+              setIsDrawerExpanded={setIsDrawerExpanded}
             />
           )
         ) : lsdStatus?.phase === 'Failed' ? (
@@ -245,6 +247,9 @@ const ChatbotMain: React.FunctionComponent = () => {
           lsdStatus={lsdStatus}
           existingModels={models}
           maasModels={maasModels}
+          allCollections={allCollections}
+          collectionsLoaded={collectionsLoaded}
+          existingCollections={existingCollections}
         />
       )}
       {deleteModalOpen && (
