@@ -47,6 +47,11 @@ export const INFERENCE_SERVICE_NAME_REGEX = /^[a-z]([-a-z0-9]*[a-z0-9])?$/;
 export const INFERENCE_SERVICE_NAME_INVALID_CHARS_MESSAGE =
   'Must start with a lowercase letter and end with a lowercase letter or number. Valid characters include lowercase letters, numbers, and hyphens (-).';
 
+/** KServe InferenceService names must start with a lowercase letter */
+export const INFERENCE_SERVICE_NAME_REGEX = /^[a-z]([-a-z0-9]*[a-z0-9])?$/;
+export const INFERENCE_SERVICE_NAME_INVALID_CHARS_MESSAGE =
+  'Must start with a lowercase letter and end with a lowercase letter or number. Valid characters include lowercase letters, numbers, and hyphens (-).';
+
 export const resourceTypeLimits: Record<LimitNameResourceType, number> = {
   [LimitNameResourceType.PROJECT]: ROUTE_BASED_NAME_LENGTH,
   [LimitNameResourceType.WORKBENCH]: ROUTE_BASED_NAME_LENGTH,
